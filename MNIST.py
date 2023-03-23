@@ -96,17 +96,22 @@ print(network.to(device))
 
 print("here we are")
 optimizer = torch.optim.SGD(network.parameters(), lr=learning_rate, momentum=momentum)
+# SGD是最基础的优化方法，普通的训练方法, 需要重复不断的把整套数据放入神经网络NN中训练, 这样消耗的计算资源会很大.
+#   当我们使用SGD会把数据拆分后再分批不断放入 NN 中计算.
+#   每次使用批数据, 虽然不能反映整体数据的情况, 不过却很大程度上加速了 NN 的训练过程, 而且也不会丢失太多准确率.
+# Momentum :
+#   传统的参数 W 的更新是把原始的 W 累加上一个负的学习率(learning rate) 乘以校正值 (dx). 此方法比较曲折。
+#   在普通的梯度下降法x+=v中，每次x的更新量v为 v=−dx∗lr，其中dx为目标函数func(x)对x的一阶导数，
+#   当使用冲量时，则把每次x的更新量v考虑为本次的梯度下降量−dx∗lr与上次x的更新量v乘上一个介于[0,1]因子momentum的和
+#   即 v=−dx∗lr+v∗ momemtum
+# learning rate:
+#    学习率较小时，收敛到极值的速度较慢。
+#    学习率较大时，容易在搜索过程中发生震荡。
 
 train_losses = []
 train_counter = []
 test_losses = []
 test_counter = [i * len(train_loader.dataset) for i in range(n_epochs + 1)]
-
-def data_in_one(inputdata):
-    min = np.nanmin(inputdata)
-    max = np.nanmax(inputdata)
-    outputdata = (inputdata-min)/(max-min)
-    return outputdata
 
 def train(epoch):
     network.train()
@@ -215,4 +220,3 @@ plt.xlabel('number of training examples seen')
 plt.ylabel('negative log likelihood loss')
 plt.show()
 print("that's it 4")
-
