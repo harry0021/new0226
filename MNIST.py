@@ -130,7 +130,7 @@ optimizer = torch.optim.SGD(network.parameters(), lr=learning_rate, momentum=mom
 #   传统的参数 W 的更新是把原始的 W 累加上一个负的学习率(learning rate) 乘以校正值 (dx). 此方法比较曲折。
 #   在普通的梯度下降法x+=v中，每次x的更新量v为 v=−dx∗lr，其中dx为目标函数func(x)对x的一阶导数，
 #   当使用冲量时，则把每次x的更新量v考虑为本次的梯度下降量−dx∗lr与上次x的更新量v乘上一个介于[0,1]因子momentum的和
-#   即 v=−dx∗lr+v∗ momemtum
+#   即 v=−dx∗lr+v∗ momentum
 # learning rate:
 #    学习率较小时，收敛到极值的速度较慢。
 #    学习率较大时，容易在搜索过程中发生震荡。
