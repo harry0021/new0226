@@ -91,6 +91,8 @@ class Net(torch.nn.Module):
         self.model = torch.nn.Sequential(
             # The size of the picture is 28x28
             torch.nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=1),
+            # padding = 1 维持了输出尺寸不变
+            # https://blog.csdn.net/weixin_42899627/article/details/108228008
             torch.nn.ReLU(),
             torch.nn.MaxPool2d(kernel_size=2, stride=2),
 
@@ -234,6 +236,7 @@ plt.show()
 print("that's it 2")
 
 # ----------------------------------------------------------- #
+
 
 continued_network = Net()
 continued_optimizer = optim.SGD(network.parameters(), lr=learning_rate, momentum=momentum)

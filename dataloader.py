@@ -136,11 +136,15 @@ if __name__ == "__main__":
   2.3.1 tqdm
   2.4 collate_fn
   """
-
-  # eg_2_1()
-  # eg_2_2()
-  # eg_2_3_0()
+  print("this is 1")
+  eg_2_1()
+  print("this is 2")
+  eg_2_2()
+  print("this is 30")
+  eg_2_3_0()
+  # print("this is 31")
   # eg_2_3_1()
+  print("this is 4")
   eg_2_4()
 
   print("~~~~~~~~~~~~")
