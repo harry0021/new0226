@@ -24,13 +24,14 @@ random_seed = 1
 torch.manual_seed(random_seed)
 
 train_loader = torch.utils.data.DataLoader(
-    torchvision.datasets.MNIST('./data/', train=True, download=True,
+    torchvision.datasets.MNIST('./data/', train=True, download=True,    # dataset是一个个类的实例
                                transform=torchvision.transforms.Compose([
                                    torchvision.transforms.ToTensor(),
                                    torchvision.transforms.Normalize(
                                        (0.1307,), (0.3081,))
+                                   # 表明是个tuple，既存图片又存标签
                                ])),
-    batch_size=batch_size_train, shuffle=True)
+    batch_size=batch_size_train, shuffle=True)   # shuffle=True用于打乱数据集，每次都会以不同的顺序返回
 
 test_loader = torch.utils.data.DataLoader(
     torchvision.datasets.MNIST('./data/', train=False, download=True,
@@ -43,9 +44,35 @@ test_loader = torch.utils.data.DataLoader(
 
 examples = enumerate(test_loader)
 batch_idx, (example_data, example_targets) = next(examples)
-print("batch_idx =", batch_idx)
-print(example_targets)
-print(example_data.shape)
+# dataloader是一个类（可迭代iterable，用for循环，用next()遍历）
+
+print("batch_idx =", batch_idx)     # batch_idx = 0
+print(example_targets)  # tensor([3,9,...,2
+#                                 x,x,...,x
+#                                 x,x,...,2])共
+print(example_data.shape)   # torch.Size([1000, 1, 28, 28])
+
+#####################
+for batch in train_loader:
+    print("type(batch): {}".format(type(batch)))  # <class 'list'>
+    print("len(batch): {}".format(len(batch)))  # 2
+    print("type(batch[0]): {}".format(type(batch[0])))  # <class 'torch.Tensor'>
+    print("type(batch[1]): {}".format(type(batch[1])))  # <class 'torch.Tensor'>
+    print("batch[0].shape: {}".format(batch[0].shape))  # torch.Size([64, 1, 28, 28])
+    print("batch[1].shape: {}".format(batch[1].shape))  # torch.Size([64])  # 64个图像的标签
+    break
+
+print("len(train_loader): {}".format(len(train_loader)))  # 938 = [60000/64]
+print("len(train_loader.dataset): {}".format(len(train_loader.dataset)))  # 60000
+
+for batch, (x, y) in enumerate(train_loader):
+    print("batch: {}, type(x): {}, type(y): {}".format(batch, type(x), type(y)))
+    # batch: 0, type(x): <class 'torch.Tensor'>, type(y): <class 'torch.Tensor'>
+    # batch是下标索引，(x,y)这个tuple就是数据本身
+    print("batch: {}, x.shape: {}, y.shape: {}".format(batch, x.shape, y.shape))
+    # batch: 0, x.shape: torch.Size([10000, 1, 28, 28]), y.shape: torch.Size([10000])
+    break
+####################
 
 fig = plt.figure()
 for i in range(6):
@@ -115,10 +142,16 @@ test_counter = [i * len(train_loader.dataset) for i in range(n_epochs + 1)]
 
 def train(epoch):
     network.train()
+    # model.train()的作用是启用 Batch Normalization 和 Dropout。
+    # model.train()是保证BN层能够用到每一批数据的均值和方差。
+    # 对于Dropout，model.train()是随机取一部分网络连接来训练更新参数。
     for batch_idx, (data, target) in enumerate(train_loader):
+
         data = data.to(device)
         target = target.to(device)
+
         optimizer.zero_grad()   # 手动将梯度设置为零
+
         output = network(data)  # 启动前向传递
 
         loss = F.nll_loss(output, target)  # 计算输出与真值标签之间的<负对数>概率损失
@@ -126,6 +159,7 @@ def train(epoch):
         loss.backward()     # 反向传播计算
 
         optimizer.step()    # 将其传播回每个网络参数
+
         if batch_idx % log_interval == 0:
             print("this is a train()")
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(data),
@@ -140,9 +174,17 @@ def train(epoch):
 
 def test():
     network.eval()
+    # model.eval()的作用是不启用 Batch Normalization 和 Dropout。
+    # model.eval()是保证BN层能够用全部训练数据的均值和方差，即测试过程中要保证BN层的均值和方差不变。
+    # 对于Dropout，model.eval()是利用到了所有网络连接，即不进行随机舍弃神经元。
     test_loss = 0
     correct = 0
     with torch.no_grad():
+        # model.eval()和torch.no_grad()的区别:
+        # 在train模式下，dropout网络层会按照设定的参数p设置保留激活单元的概率（保留概率=p); BN层会继续计算数据的mean和var等参数并更新。
+        # 在eval模式下，dropout层会让所有的激活单元都通过，而BN层会停止计算和更新mean和var，直接使用在训练阶段已经学出的mean和var值。
+        #   如果不在意显存大小和计算时间的话，仅仅使用model.eval()已足够得到正确的validation/test的结果；
+        #   而with torch.no_grad()则是更进一步加速和节省gpu空间（因为不用计算和存储梯度），从而可以更快计算，也可以跑更大的batch来测试。
         for data, target in test_loader:
             data = data.to(device)
             target = target.to(device)
@@ -179,7 +221,6 @@ batch_idx, (example_data, example_targets) = next(examples)
 # example_data = example_data.to(device)
 # example_targets = example_targets.to(device)
 with torch.no_grad():
-    # output = output.to(device)
     output = network(example_data)
 fig = plt.figure()
 for i in range(6):
