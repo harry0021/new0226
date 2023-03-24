@@ -219,10 +219,10 @@ if __name__ == "__main__":
   3.5 torch.utils.model_zoo.load_url()
   """
 
-  # eg_3_0_0()
+  eg_3_0_0()
   # eg_3_0_1()
   # eg_3_1()
-  eg_3_2()
+  # eg_3_2()
   # eg_3_3()
   # eg_3_4_0()
   # eg_3_4_1()

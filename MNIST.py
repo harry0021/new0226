@@ -74,14 +74,14 @@ for batch, (x, y) in enumerate(train_loader):
     break
 ####################
 
-fig = plt.figure()
-for i in range(6):
-    plt.subplot(2, 3, i + 1)
-    plt.tight_layout()
-    plt.imshow(example_data[i][0], cmap='gray', interpolation='none')
-    plt.title("Ground Truth: {}".format(example_targets[i]))
-    plt.xticks([])
-    plt.yticks([])
+# fig = plt.figure()
+# for i in range(6):
+#     plt.subplot(2, 3, i + 1)
+#     plt.tight_layout()
+#     plt.imshow(example_data[i][0], cmap='gray', interpolation='none')
+#     plt.title("Ground Truth: {}".format(example_targets[i]))
+#     plt.xticks([])
+#     plt.yticks([])
 # plt.show()
 print("that's it ")
 
@@ -105,10 +105,15 @@ class Net(torch.nn.Module):
             torch.nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1),
             torch.nn.ReLU(),
 
-            torch.nn.Flatten(),
+            torch.nn.Flatten(),  # 打平成7*7*64 = 3136的向量
+
             torch.nn.Linear(in_features=7 * 7 * 64, out_features=128),
             torch.nn.ReLU(),
             torch.nn.Linear(in_features=128, out_features=10),
+            # (7*7*64 * 128) + (128 * 10) = 402688, 为参数量
+            # 然后每个参数是用一个4字节的浮点数来表示，所以约为1.6MB
+            # 因此需要约1.6M的显存
+
             torch.nn.Softmax(dim=1)
         )
 
@@ -136,7 +141,7 @@ optimizer = torch.optim.SGD(network.parameters(), lr=learning_rate, momentum=mom
 # learning rate:
 #    学习率较小时，收敛到极值的速度较慢。
 #    学习率较大时，容易在搜索过程中发生震荡。
-
+# https://blog.csdn.net/apsvvfb/article/details/72536495
 train_losses = []
 train_counter = []
 test_losses = []
@@ -163,7 +168,7 @@ def train(epoch):
         optimizer.step()    # 将其传播回每个网络参数
 
         if batch_idx % log_interval == 0:
-            print("this is a train()")
+            # print("this is a train()")
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(data),
                                                                            len(train_loader.dataset),
                                                                            100. * batch_idx / len(train_loader),
@@ -172,7 +177,8 @@ def train(epoch):
             train_counter.append((batch_idx * 64) + ((epoch - 1) * len(train_loader.dataset)))
             torch.save(network.state_dict(), './model.pth')
             torch.save(optimizer.state_dict(), './optimizer.pth')
-
+            # 神经网络模块以及优化器能够使用.state_dict()保存和加载它们的内部状态。
+            # 这样，如果需要，我们就可以继续从以前保存的状态dict中进行训练——只需调用.load_state_dict(state_dict)。
 
 def test():
     network.eval()
@@ -198,7 +204,7 @@ def test():
             correct += pred.eq(target.data.view_as(pred)).sum()
     test_loss /= len(test_loader.dataset)
     test_losses.append(test_loss)
-    print("this is a test()")
+    # print("this is a test()")
     print('\nTest set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
