@@ -162,11 +162,11 @@ train_counter = []
 test_losses = []
 test_counter = [i * len(train_loader.dataset) for i in range(n_epochs + 1)]
 
-def data_in_one(inputdata):
-    min = np.nanmin(inputdata)
-    max = np.nanmax(inputdata)
-    outputdata = (inputdata-min)/(max-min)
-    return outputdata
+# def data_in_one(inputdata):
+#     min = np.nanmin(inputdata)
+#     max = np.nanmax(inputdata)
+#     outputdata = (inputdata-min)/(max-min)
+#     return outputdata
 
 def train(epoch):
     network.train()

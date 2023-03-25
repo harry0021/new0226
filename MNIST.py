@@ -1,9 +1,6 @@
-import numpy as np
 import torch
 import torchvision
 from torch.utils.data import DataLoader
-
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
@@ -29,6 +26,7 @@ train_loader = torch.utils.data.DataLoader(
                                    torchvision.transforms.ToTensor(),
                                    torchvision.transforms.Normalize(
                                        (0.1307,), (0.3081,))
+                                   # Normalize()转换使用的值0.1307和0.3081是MNIST数据集的全局平均值和标准偏差，这里我们将它们作为给定值。
                                    # 表明是个tuple，既存图片又存标签
                                ])),
     batch_size=batch_size_train, shuffle=True)   # shuffle=True用于打乱数据集，每次都会以不同的顺序返回
@@ -104,11 +102,13 @@ class Net(torch.nn.Module):
             # The size of the picture is 7x7
             torch.nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1),
             torch.nn.ReLU(),
+            torch.nn.Dropout2d(),
 
             torch.nn.Flatten(),  # 打平成7*7*64 = 3136的向量
 
             torch.nn.Linear(in_features=7 * 7 * 64, out_features=128),
             torch.nn.ReLU(),
+            torch.nn.Dropout(),
             torch.nn.Linear(in_features=128, out_features=10),
             # (7*7*64 * 128) + (128 * 10) = 402688, 为参数量
             # 然后每个参数是用一个4字节的浮点数来表示，所以约为1.6MB
@@ -125,7 +125,7 @@ class Net(torch.nn.Module):
     def forward(self, input):
         input = input.to(device)
         output = self.model(input)
-        return F.log_softmax(output,dim=1)
+        return F.log_softmax(output, dim=1)
     # https://blog.csdn.net/weixin_42214565/article/details/102381380
     # Pytorch训练网络模型过程中Loss为负值的问题及其解决方案
 
@@ -173,7 +173,12 @@ def train(epoch):
         optimizer.step()    # 将其传播回每个网络参数
 
         if batch_idx % log_interval == 0:
-            # print("this is a train()")
+
+            print("output.shape: {}".format(output.shape))
+            print("output = ", output)
+            print("loss.shape: {}".format(loss.shape))
+            print("loss = ", loss)
+
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(data),
                                                                            len(train_loader.dataset),
                                                                            100. * batch_idx / len(train_loader),
@@ -218,6 +223,9 @@ def test():
 print("that's it 0")
 
 test()  # 不加这个，后面画图就会报错：x and y must be the same size
+
+print("this is an initial test")
+
 for epoch in range(1, n_epochs + 1):
     train(epoch)
     test()
