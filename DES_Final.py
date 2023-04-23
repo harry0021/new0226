@@ -323,6 +323,7 @@ class ArrangeSimpleDES():
             plaintext1 = self.decode(ciphertext)
             print("解密所得明文是:{}".format(plaintext1))
 
+
 if __name__ == '__main__':
     mydes = ArrangeSimpleDES()
     plaintext = input("输入待加密的明文：")
